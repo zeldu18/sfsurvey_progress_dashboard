@@ -1,0 +1,335 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SF Survey — ArcGIS Dashboard mockup</title>
+<style>
+  :root{
+    --a:#F58220; --anc:#FFD100; --b:#7BC67B; --c:#29ABE2; --ne:#D14FD1; --ref:#9E9E9E;
+    --bg:#efefef; --bd:#d8d8d8; --tx:#4c4c4c; --tx2:#707070; --h1:#323232;
+    --esri:#0079c1; --err:#c1392b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font:13px/1.35 "Avenir Next","Avenir","Helvetica Neue",Helvetica,Arial,sans-serif}
+  a{color:var(--esri);text-decoration:none} a:hover{text-decoration:underline}
+
+  /* ── dashboard header ── */
+  .dbhdr{background:#2b2b2b;color:#fff;height:44px;display:flex;align-items:center;padding:0 12px;gap:12px}
+  .dbhdr .logo{width:24px;height:24px;border:1px solid #6e6e6e;display:flex;align-items:center;
+    justify-content:center;font-size:9px;color:#c9c9c9;letter-spacing:.04em}
+  .dbhdr .t{font-size:15px;font-weight:500;letter-spacing:.01em}
+  .dbhdr .r{margin-left:auto;font-size:11px;color:#9a9a9a}
+
+  /* ── canvas ── */
+  .canvas{display:flex;gap:4px;padding:4px;align-items:stretch;
+    height:calc(100vh - 44px);overflow:hidden}
+  .lane{display:flex;flex-direction:column;gap:4px;min-width:0;min-height:0}
+
+  /* ── element chrome ── */
+  .el{background:#fff;border:1px solid var(--bd);display:flex;flex-direction:column;
+    min-width:0;min-height:0;overflow:hidden}
+  .elhd{display:flex;align-items:center;gap:8px;padding:6px 9px 5px;border-bottom:1px solid #ededed;flex:none}
+  .elhd h2{margin:0;font-size:12.5px;font-weight:500;color:var(--h1);line-height:1.2}
+  .elhd .sb{font-size:11px;color:#9a9a9a;font-weight:400}
+  .kebab{margin-left:auto;color:#a8a8a8;font-size:13px;letter-spacing:1px;cursor:default;flex:none}
+  .elbd{padding:8px 9px;overflow:auto;min-height:0;flex:1}
+
+  /* ── indicator ── */
+  .ind{flex:1;min-width:110px}
+  .ind .elbd{text-align:center;padding:5px 6px 8px;overflow:hidden}
+  .ind .vl{font-size:30px;line-height:1.15;font-weight:300;color:#2b2b2b;font-variant-numeric:tabular-nums}
+  .ind .rf{font-size:10.5px;color:#9a9a9a;margin-top:1px}
+
+  /* ── filters ── */
+  label{display:block;font-size:10.5px;color:#8e8e8e;margin:10px 0 3px;text-transform:uppercase;letter-spacing:.05em}
+  label:first-of-type{margin-top:0}
+  select,input[type=text]{width:100%;border:1px solid #c9c9c9;background:#fff;color:var(--tx);
+    font:inherit;font-size:12.5px;padding:5px 6px}
+  .catsel{border:1px solid #e6e6e6}
+  .catsel button{appearance:none;display:block;width:100%;text-align:left;background:#fff;border:none;
+    border-bottom:1px solid #f0f0f0;font:inherit;font-size:12.5px;padding:7px 9px;cursor:pointer;color:var(--tx)}
+  .catsel button:last-child{border-bottom:none}
+  .catsel button[aria-pressed="true"]{background:var(--esri);color:#fff}
+  .catsel button:focus-visible{outline:1px solid #2b2b2b;outline-offset:-1px}
+  .btn{appearance:none;width:100%;margin-top:11px;border:1px solid var(--esri);background:var(--esri);
+    color:#fff;font:inherit;font-size:12.5px;padding:7px;cursor:pointer}
+  .btn.sec{background:#fff;color:var(--esri);margin-top:5px}
+  .btn:focus-visible{outline:2px solid #2b2b2b;outline-offset:1px}
+
+  /* ── serial chart ── */
+  .r{display:grid;grid-template-columns:140px 1fr 42px 44px;gap:6px;align-items:center;margin-bottom:5px;font-size:11.5px}
+  .r .nm{text-align:right;color:var(--tx2);line-height:1.2}
+  .r .tk{background:#f2f2f2;height:15px}
+  .r .tk i{display:block;height:100%}
+  .r .vv{text-align:right;font-variant-numeric:tabular-nums}
+  .r .pc{text-align:right;font-variant-numeric:tabular-nums;color:#9a9a9a;font-size:11px}
+  .axis{border-top:1px solid #ededed;margin:6px 92px 0 146px;display:flex;justify-content:space-between;
+    font-size:10px;color:#a8a8a8;padding-top:3px}
+
+  /* ── rules list ── */
+  .rule{display:grid;grid-template-columns:1fr 30px;gap:6px;padding:6px 0;border-bottom:1px solid #f2f2f2;font-size:11.5px}
+  .rule:last-child{border-bottom:none}
+  .rule .cn{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+  .rule .cn.hit{color:var(--err)} .rule .cn.clean{color:#b5b5b5}
+
+  /* ── map ── */
+  .el.map .elbd{padding:0;position:relative;flex:1;display:flex;overflow:hidden}
+  .el.map svg{display:block;width:100%;height:100%}
+  .mapctl{position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:3px}
+  .mapctl span{width:26px;height:26px;background:#fff;border:1px solid #c9c9c9;display:flex;
+    align-items:center;justify-content:center;font-size:12px;color:#555}
+  .scale{position:absolute;left:8px;bottom:6px;font-size:10px;color:#4c4c4c;background:rgba(255,255,255,.85);padding:1px 5px}
+  .scale b{display:inline-block;width:46px;border-bottom:2px solid #4c4c4c;margin-right:5px;vertical-align:2px}
+  .esri{position:absolute;right:4px;bottom:3px;font-size:10px;color:#5a5a5a;background:rgba(255,255,255,.85);padding:1px 5px}
+  .lg{display:flex;flex-wrap:wrap;gap:3px 14px;padding:8px 9px;border-top:1px solid #ededed}
+  .lg div{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2)}
+  .sw{width:11px;height:11px;flex:none}
+
+  /* ── table ── */
+  .tw{overflow:auto;flex:1;min-height:0}
+  table.d{border-collapse:collapse;width:100%;font-size:12px;min-width:1080px}
+  table.d th{background:#f7f7f7;text-align:left;padding:7px 10px;font-size:10.5px;font-weight:500;
+    color:var(--h1);border-bottom:1px solid var(--bd);white-space:nowrap;text-transform:uppercase;
+    letter-spacing:.04em;position:sticky;top:0;z-index:1}
+  table.d td{padding:6px 10px;border-bottom:1px solid #f2f2f2}
+  table.d tr:nth-child(even) td{background:#fbfbfb}
+  table.d tr.bad td{background:#fdf0ee}
+  table.d tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--err)}
+  .tg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .dot{width:9px;height:9px;flex:none}
+  .mono{font-family:Menlo,Consolas,monospace;font-size:11px;color:var(--tx2)}
+  .mut{color:#9a9a9a}
+  .flagtxt{color:var(--err);font-size:11px}
+  .elft{display:flex;justify-content:space-between;align-items:center;padding:5px 9px;
+    border-top:1px solid #ededed;font-size:11px;color:#9a9a9a;flex:none}
+
+  @media (max-width:1080px){
+    html,body{overflow:auto}
+    .canvas{flex-direction:column;height:auto;overflow:visible}
+    .el{min-height:220px}
+  }
+</style>
+
+<div class="dbhdr">
+  <span class="logo">SFP</span>
+  <span class="t">SF Survey — Progress, Findings &amp; Validation</span>
+  <span class="r">Mockup · not connected to live data</span>
+</div>
+
+<div class="canvas">
+
+  <!-- ══ left lane: selectors + rules ══ -->
+  <div class="lane" style="flex:0 0 234px">
+    <div class="el" style="flex:0 1 auto">
+      <div class="elhd"><h2>Filters</h2><span class="kebab">⋯</span></div>
+      <div class="elbd">
+        <label>Survey area</label>
+        <div class="catsel">
+          <button id="s-all" aria-pressed="true">All areas</button>
+          <button id="s-ncd" aria-pressed="false">Castro · Noe Valley · Glen Park NCDs</button>
+        </div>
+        <label for="f1">Unit status</label>
+        <select id="f1"><option>All (01–12)</option><option>01 Needs Fieldwork</option><option>02 Fieldwork Complete</option><option>03 Evaluation Underway</option><option>04 Evaluation Complete</option><option>05 Evaluation Pending Historic Context Statement</option><option>08 Revisions Needed</option><option>09 Approved by Staff</option><option>10 Adopted by HPC</option><option>12 Evaluation Pending Historic District Assessment</option></select>
+        <label for="f2">Findings summary</label>
+        <select id="f2"><option>All findings</option><option>Category A</option><option>Category A — Non-Contributor</option><option>Category B</option><option>Category C</option><option>Not evaluated (age/visibility)</option><option>Refer to survey unit status</option></select>
+        <label for="f3">CHR status code</label>
+        <select id="f3"><option>All codes</option><option>3CB</option><option>3CD</option><option>3CS</option><option>6Z</option><option>7R</option><option>No code</option></select>
+        <label for="f4">Status date</label>
+        <input id="f4" type="text" value="Jan 1 2024 – today" readonly>
+        <button class="btn">Export Selection</button>
+        <button class="btn sec">Errors only</button>
+      </div>
+    </div>
+
+    <div class="el" style="flex:1">
+      <div class="elhd"><h2>Validation rules <span class="sb">· computed in the layer view</span></h2><span class="kebab">⋯</span></div>
+      <div class="elbd" id="rules"></div>
+    </div>
+  </div>
+
+  <!-- ══ right lane ══ -->
+  <div class="lane" style="flex:1">
+
+    <div style="display:flex;gap:4px;flex:0 0 78px;min-height:0">
+      <div class="el ind"><div class="elhd"><h2>Units in Scope</h2></div><div class="elbd"><div class="vl" id="k1"></div><div class="rf" id="r1"></div></div></div>
+      <div class="el ind"><div class="elhd"><h2>Fieldwork Completed</h2></div><div class="elbd"><div class="vl" id="k2"></div><div class="rf" id="r2"></div></div></div>
+      <div class="el ind"><div class="elhd"><h2>Evaluation Completed</h2></div><div class="elbd"><div class="vl" id="k3"></div><div class="rf" id="r3"></div></div></div>
+      <div class="el ind"><div class="elhd"><h2>Adopted by HPC</h2></div><div class="elbd"><div class="vl" id="k4"></div><div class="rf" id="r4"></div></div></div>
+      <div class="el ind"><div class="elhd"><h2>Historic Resource Present</h2></div><div class="elbd"><div class="vl" id="k5"></div><div class="rf" id="r5"></div></div></div>
+    </div>
+
+    <div style="display:flex;gap:4px;align-items:stretch;flex:1 1 auto;min-height:0">
+      <!-- three charts, one under the other -->
+      <div class="lane" style="flex:0 0 372px">
+        <div class="el" style="flex:1">
+          <div class="elhd"><h2>Unit Status</h2><span class="kebab">⋯</span></div>
+          <div class="elbd" id="v-status"></div>
+        </div>
+        <div class="el" style="flex:1">
+          <div class="elhd"><h2>Findings Summary</h2><span class="kebab">⋯</span></div>
+          <div class="elbd" id="v-find"></div>
+        </div>
+        <div class="el" style="flex:1">
+          <div class="elhd"><h2>CHR Status Code</h2><span class="kebab">⋯</span></div>
+          <div class="elbd" id="v-chr"></div>
+        </div>
+      </div>
+
+      <!-- map -->
+      <div class="el map" style="flex:1">
+        <div class="elhd"><h2>Survey Units <span class="sb">· symbolized by findings summary</span></h2><span class="kebab">⋯</span></div>
+        <div class="elbd" id="mapbox"></div>
+        <div class="lg" id="legend"></div>
+      </div>
+    </div>
+
+    <!-- table -->
+    <div class="el" style="flex:0 0 30%;min-height:150px">
+      <div class="elhd"><h2>Properties</h2><span class="sb" id="tsub"></span><span class="kebab">⋯</span></div>
+      <div class="tw">
+        <table class="d">
+          <thead><tr><th>addresses</th><th>apn</th><th>findings_summary</th><th>chr_status_code</th><th>unit_status</th><th>completed_by</th><th>validation_flag</th><th>report_link</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="elft"><span>Reflects every filter and map selection</span><a href="#">↓ Download data</a></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const F={
+  a:{label:'Category A',color:'#F58220'},
+  anc:{label:'Category A — Non-Contributor',color:'#FFD100'},
+  b:{label:'Category B',color:'#7BC67B'},
+  c:{label:'Category C',color:'#29ABE2'},
+  ne:{label:'Not evaluated (age/visibility)',color:'#D14FD1'},
+  ref:{label:'Refer to survey unit status',color:'#9E9E9E'}
+};
+const FK=Object.keys(F);
+const CHR=['3CB','3CD','3CS','6Z','7R','No code'];
+
+const D={
+ all:{
+  note:'All areas · 8,346 units · showing 12',
+  scope:8346, fw:7142, ev:4366, adopted:1245, hrp:248,
+  status:[['01 Needs Fieldwork',1204],['02 Fieldwork Complete',3537],['03 Evaluation Underway',125],
+   ['04 Evaluation Complete',2075],['05 Pending HCS',257],['08 Revisions Needed',11],
+   ['09 Approved by Staff',1035],['10 Adopted by HPC',1245],['12 Pending District Assessment',61]],
+  find:{a:248,anc:63,b:9,c:3771,ne:275,ref:3980},
+  chr:{'3CB':62,'3CD':131,'3CS':55,'6Z':3832,'7R':289,'No code':3977},
+  mx:{a:[62,131,55,4,0,2], anc:[0,0,0,49,14,0], b:[0,0,0,0,4,5],
+      c:[0,0,0,3768,0,3], ne:[0,0,0,11,264,0], ref:[0,0,0,0,0,3967]},
+  rules:[['Finding recorded before evaluation began',12],['CHR code contradicts findings summary',21],
+   ['Approved or adopted with no CHR code',5],['Category A carrying a 6Z code',4],
+   ['Missing report_link',18],['Missing completed_by on an evaluated unit',14],
+   ['Duplicate APN with conflicting findings',12],['Blank unit_status',1]]
+ },
+ ncd:{
+  note:'Castro · Noe Valley · Glen Park NCDs · record 2025-001886SRV-03 · 421 records · showing 12',
+  scope:421, fw:421, ev:416, adopted:0, hrp:110,
+  status:[['01 Needs Fieldwork',0],['02 Fieldwork Complete',0],['03 Evaluation Underway',0],
+   ['04 Evaluation Complete',0],['05 Pending HCS',2],['08 Revisions Needed',0],
+   ['09 Approved by Staff',416],['10 Adopted by HPC',0],['12 Pending District Assessment',3]],
+  find:{a:110,anc:22,b:0,c:260,ne:24,ref:5},
+  chr:{'3CB':19,'3CD':67,'3CS':24,'6Z':280,'7R':26,'No code':5},
+  mx:{a:[19,67,24,0,0,0], anc:[0,0,0,20,2,0], b:[0,0,0,0,0,0],
+      c:[0,0,0,259,0,1], ne:[0,0,0,1,24,0], ref:[0,0,0,0,0,5]},
+  rules:[['Finding recorded before evaluation began',0],['CHR code contradicts findings summary',2],
+   ['Approved or adopted with no CHR code',1],['Category A carrying a 6Z code',0],
+   ['Missing report_link',0],['Missing completed_by on an evaluated unit',3],
+   ['Duplicate APN with conflicting findings',0],['Blank unit_status',0]]
+ }
+};
+
+const ROWS=[
+ ['400-410 Castro Street','2647035','a','3CB','09 Approved by Staff','A. Nguyen','','d310540d'],
+ ['430-432 Castro Street','2647003','a','3CD','09 Approved by Staff','A. Nguyen','','f3bdf282'],
+ ['444 Castro Street','2647006','a','3CS','09 Approved by Staff','R. Ellery','','efa853ca'],
+ ['1311 Castro Street','6507014','a','3CS','09 Approved by Staff','R. Ellery','','24fd0de1'],
+ ['4122-4124 18th Street','2647014','anc','6Z','09 Approved by Staff','A. Nguyen','','020d3a22'],
+ ['470-476 Castro Street','2647012','anc','7R','09 Approved by Staff','R. Ellery','','88a37599'],
+ ['4238-4240 18th Street','2648020','c','6Z','09 Approved by Staff','R. Ellery','','3d2d1004'],
+ ['714 Chenery Street','6739006','c','6Z','09 Approved by Staff','','Missing completed_by','ab55e13c'],
+ ['1395-1399 Church Street','6551022A','c','6Z','09 Approved by Staff','R. Ellery','Superseded record, no withdrawal flag','97bf5440'],
+ ['4230-4230a 18th Street','2648019','ne','7R','09 Approved by Staff','A. Nguyen','','164d7f77'],
+ ['501 Castro Street','3583073','ne','6Z','09 Approved by Staff','A. Nguyen','CHR code contradicts findings summary','c654b743'],
+ ['4052 18th Street','3582111','ref','—','12 Evaluation Pending Historic District Assessment','—','','6c427f61']
+];
+
+const n=v=>v.toLocaleString('en-US');
+let state='all';
+
+function bars(el,rows,colorFn){
+  const max=Math.max(...rows.map(r=>r[1]),1);
+  const total=rows.reduce((s,r)=>s+r[1],0)||1;
+  const nice=max>200?Math.ceil(max/500)*500:Math.ceil(max/25)*25||max;
+  el.innerHTML=rows.map(([nm,v],i)=>`<div class="r"><div class="nm">${nm}</div>
+    <div class="tk"><i style="width:${v/nice*100}%;background:${colorFn(i)}"></i></div>
+    <div class="vv">${v?n(v):'—'}</div>
+    <div class="pc">${v?(v/total*100).toFixed(1)+'%':'—'}</div></div>`).join('')
+    +`<div class="axis"><span>0</span><span>${n(Math.round(nice/2))}</span><span>${n(nice)}</span></div>`;
+}
+
+function drawMap(){
+  let r=state==='ncd'?7:3; const rnd=()=>(r=(r*9301+49297)%233280)/233280;
+  const keys=['a','anc','c','ne','ref'];
+  let s=''; const cnt=state==='ncd'?46:158;
+  for(let i=0;i<cnt;i++){
+    const x=54+rnd()*590,y=26+rnd()*300,w=5+rnd()*15,h=4+rnd()*8;
+    s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${F[keys[Math.floor(rnd()*keys.length)]].color}"/>`;
+  }
+  document.getElementById('mapbox').innerHTML=`<svg viewBox="0 0 700 350" preserveAspectRatio="none" style="width:100%;height:100%">
+    <rect width="700" height="350" fill="#e4ebee"/>
+    <path d="M52 20 L660 20 L660 332 L52 332 Z" fill="#f7f6f2" stroke="#dcdcd6"/>
+    ${Array.from({length:13},(_,i)=>`<line x1="${52+i*50}" y1="20" x2="${52+i*50}" y2="332" stroke="#e8e8e2"/>`).join('')}
+    ${Array.from({length:8},(_,i)=>`<line x1="52" y1="${20+i*44}" x2="660" y2="${20+i*44}" stroke="#e8e8e2"/>`).join('')}
+    ${s}
+    <rect x="52" y="20" width="608" height="312" fill="none" stroke="#8f8f8a" stroke-dasharray="5 4"/>
+  </svg>
+  <div class="mapctl"><span>⌂</span><span>+</span><span>−</span><span>☰</span></div>
+  <span class="scale"><b></b>2,000 ft</span><span class="esri">Powered by Esri</span>`;
+}
+
+function render(){
+  const d=D[state];
+  const set=(i,v,r)=>{document.getElementById('k'+i).textContent=v;document.getElementById('r'+i).textContent=r;};
+  const p=(a,b)=>b?Math.round(a/b*100)+'%':'0%';
+  set(1,n(d.scope),'units and properties');
+  set(2,n(d.fw),p(d.fw,d.scope)+' of units in scope');
+  set(3,n(d.ev),p(d.ev,d.scope)+' of units in scope');
+  set(4,n(d.adopted),p(d.adopted,d.scope)+' of units in scope');
+  set(5,(d.hrp/d.ev*100).toFixed(1)+'%',n(d.hrp)+' of '+n(d.ev)+' evaluated');
+  document.getElementById('tsub').textContent=d.note;
+
+  document.getElementById('rules').innerHTML=d.rules.map(([nm,v])=>
+    `<div class="rule"><div>${nm}</div><div class="cn ${v?'hit':'clean'}">${v||'0'}</div></div>`).join('');
+
+  bars(document.getElementById('v-status'),d.status,()=>'#0079c1');
+  bars(document.getElementById('v-find'),FK.map(k=>[F[k].label,d.find[k]]),i=>F[FK[i]].color);
+  bars(document.getElementById('v-chr'),CHR.map(c=>[c,d.chr[c]]),()=>'#7b6fb0');
+
+  document.getElementById('legend').innerHTML=FK.map(k=>
+    `<div><span class="sw" style="background:${F[k].color}"></span>${F[k].label}</div>`).join('');
+
+  document.getElementById('rows').innerHTML=ROWS.map(([ad,apn,k,code,st,by,flag,id])=>
+    `<tr class="${flag?'bad':''}"><td>${ad}</td><td class="mono">${apn}</td>
+     <td><span class="tg"><span class="dot" style="background:${F[k].color}"></span>${F[k].label}</span></td>
+     <td class="mono">${code}</td><td class="mut">${st}</td>
+     <td class="${by?'':'flagtxt'}">${by||'—'}</td><td class="flagtxt">${flag||''}</td>
+     <td><a href="https://sfculturalheritage.org/report/${id}">report/${id}…</a></td></tr>`).join('');
+
+  drawMap();
+}
+
+function setScope(s){
+  state=s;
+  document.getElementById('s-all').setAttribute('aria-pressed',s==='all');
+  document.getElementById('s-ncd').setAttribute('aria-pressed',s==='ncd');
+  render();
+}
+document.getElementById('s-all').addEventListener('click',()=>setScope('all'));
+document.getElementById('s-ncd').addEventListener('click',()=>setScope('ncd'));
+render();
+</script>
